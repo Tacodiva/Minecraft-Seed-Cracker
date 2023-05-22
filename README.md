@@ -1,9 +1,11 @@
-# Minecraft 1.20 Loot Table Seed Cracker
+# Minecraft 1.20 Loot Table Seed Finder
 
-The code I'm using to crack seeds with specific loot, thanks to the new 1.20 loot table system. This is not user friendly at all, but thought I'd share.
+The code I'm using to find seeds with specific drop from loot table, thanks to the changes made in 1.20. This is not user friendly at all, but thought I'd share.
+
+Seeds like 3078515690265 can be found with this. In that seed, the first 19 melons broken will yield the maximum number of melon slices.
 
 This project has two different entrypoint files, `main.c` which is a very standard multithreaded implimentation of the search, and `main_simd.c` which is a far more impressive SIMD implimentation, which works 2-3x faster than the "simple" version. 
 
 I plan on looking into a GPU computer-shader driven implimentation of this algorithm too, not sure how much faster it will end up being, though.
 
-Thanks to Matthew Bolan for the math behind the algorithm, and thank you to the sample code [here](https://gist.github.com/mjtb49/f3e01e3355178d2bb6c814606971c374).
+Thanks to Matthew Bolan for the math behind the algorithm, and to [this sample implimentation of said algorithm](https://gist.github.com/mjtb49/f3e01e3355178d2bb6c814606971c374).

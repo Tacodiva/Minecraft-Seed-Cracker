@@ -3,7 +3,7 @@
 
 #include "./ltrng.c"
 
-#define THREAD_COUNT 8
+#define THREAD_COUNT 1
 #define STARTING_SEED 0L
 
 int test_loot(struct ltrng_State *state)

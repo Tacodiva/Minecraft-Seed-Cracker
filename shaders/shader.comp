@@ -1,0 +1,66 @@
+#version 450
+#extension GL_ARB_gpu_shader_int64 : require
+
+#define SEEDS_PER_INVOKE 1024
+
+layout(local_size_x = 1024, local_size_y = 1, local_size_z = 1) in;
+
+layout(binding = 0) uniform UniformBufferObject {
+  uint64_t seedOffset;
+  uint64_t minCount;
+
+  uint64_t hashLo;
+  uint64_t hashHi;
+};
+
+struct Data {
+  uint64_t count;
+  uint64_t seed;
+};
+
+layout(std430, binding = 1) buffer ResultsBufferObject { Data data; };
+
+#include "./lib.comp"
+
+bool test_loot(inout ltrng_State state) {
+  // Rewrite this for each loot table. Be careful since loot tables might do
+  // extra calls besides what you target, which this method must do as well.
+  // That is, this method should imitate a full call to the loot table. You must
+  // look in the code to determine exactly the nature of the needed test, or
+  // experiment
+
+  // determines melon slice count
+  uint val = ltrng_state_next_int_range(state, 5);
+
+  // melons have something extra in their loot table which does a call after the
+  // number of slices is chosen
+  // the next line accounts for that
+  ltrng_state_next_long(state);
+
+  return val == 4;
+}
+
+void main() {
+
+  uint64_t biggestCount = data.count;
+  uint64_t biggestSeed = 0;
+
+  for (int i = 0; i < SEEDS_PER_INVOKE; i++) {
+    uint64_t seed =
+        uint64_t(gl_GlobalInvocationID.x * SEEDS_PER_INVOKE + seedOffset + i);
+
+    ltrng_State state = ltrng_state_create(seed);
+
+    uint64_t count = 0;
+    while (test_loot(state)) {
+      ++count;
+    }
+    if (count > biggestCount) {
+      biggestCount = data.count;
+      if (count > biggestCount) {
+        data.count = count;
+        data.seed = seed;
+      }
+    }
+  }
+}

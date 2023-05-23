@@ -5,8 +5,8 @@
 #include "./ltrng.c"
 #include "./ltrng_simd.c"
 
-#define THREAD_COUNT 8
-#define STARTING_SEED 0L
+#define THREAD_COUNT 14
+#define STARTING_SEED 9372036854775807L
 
 __mmask8 test_loot(struct ltrng_simd_State *state)
 {

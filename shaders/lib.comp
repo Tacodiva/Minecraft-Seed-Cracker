@@ -1,0 +1,71 @@
+
+struct ltrng_State {
+  uint64_t low;
+  uint64_t high;
+};
+
+uint64_t ltrng_util_mix_stafford_13(uint64_t seed) {
+  seed = (seed ^ seed >> 30) * -4658895280553007687L;
+  seed = (seed ^ seed >> 27) * -7723592293110705685L;
+  return seed ^ seed >> 31;
+}
+
+uint64_t ltrng_util_rotl(uint64_t x, uint r) {
+  return (x << r) | (x >> (64 - r));
+}
+
+uint64_t ltrng_state_next_long(inout ltrng_State seed) {
+  uint64_t l = seed.low;
+  uint64_t m = seed.high;
+  // return value only
+  uint64_t n = ltrng_util_rotl(l + m, 17) + l;
+
+  // actual generator
+  m ^= l;
+  seed.low = (ltrng_util_rotl(l, 49) ^ m) ^ (m << 21);
+  seed.high = ltrng_util_rotl(m, 28);
+
+  return n;
+}
+
+ltrng_State ltrng_state_create(uint64_t seed) {
+  uint64_t l_seed = seed ^ 0x6A09E667F3BCC909L;
+  ltrng_State s_seed;
+
+  s_seed.low = ltrng_util_mix_stafford_13(l_seed);
+  s_seed.high = ltrng_util_mix_stafford_13(l_seed + -7046029254386353131L);
+  s_seed.low ^= hashLo;
+  s_seed.high ^= hashHi;
+
+  if ((s_seed.low | s_seed.high) == 0L) {
+    s_seed.low = -7046029254386353131L;
+    s_seed.high = 7640891576956012809L;
+  }
+
+  // 1.20-pre3 burns a nextLong() call
+  ltrng_state_next_long(s_seed);
+
+  return s_seed;
+}
+
+uint ltrng_state_next_int(inout ltrng_State state)
+{
+    return uint(ltrng_state_next_long(state));
+}
+
+uint ltrng_state_next_int_range(inout ltrng_State state, uint i)
+{
+    uint64_t l = ltrng_state_next_int(state);
+    uint64_t m = l * uint64_t(i);
+    uint64_t n = m & 0xFFFFFFFF;
+
+    if (n < uint64_t(i))
+    {
+        for (uint j = (~i + 1) % i; n < j; n = m & 0xFFFFFFFF)
+        {
+            l = ltrng_state_next_int(state);
+            m = l * uint64_t(i);
+        }
+    }
+    return int(m >> 32);
+}

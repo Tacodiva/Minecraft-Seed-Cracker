@@ -34,7 +34,7 @@ void ltrng_state_init(struct ltrng_State *state, const char *str)
 
 void ltrng_state_set_seed(struct ltrng_State *state, int64_t seed)
 {
-    long l_seed = seed ^ 0x6A09E667F3BCC909L;
+    int64_t l_seed = seed ^ 0x6A09E667F3BCC909L;
     struct ltrng_Seed s_seed;
     s_seed.low = ltrng_util_mix_stafford_13(l_seed) ^ state->hash.low;
     s_seed.high = ltrng_util_mix_stafford_13(l_seed + -7046029254386353131L) ^ state->hash.high;

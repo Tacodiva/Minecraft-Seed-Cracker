@@ -36,8 +36,8 @@ void ltrng_state_set_seed(struct ltrng_State *state, int64_t seed)
 {
     int64_t l_seed = seed ^ 0x6A09E667F3BCC909L;
     struct ltrng_Seed s_seed;
-    s_seed.low = ltrng_util_mix_stafford_13(l_seed) ^ state->hash.low;
-    s_seed.high = ltrng_util_mix_stafford_13(l_seed + -7046029254386353131L) ^ state->hash.high;
+    s_seed.low = ltrng_util_mix_stafford_13(l_seed ^ state->hash.low);
+    s_seed.high = ltrng_util_mix_stafford_13((l_seed + -7046029254386353131L) ^ state->hash.high);
 
     if ((s_seed.low | s_seed.high) == 0L)
     {
@@ -46,9 +46,6 @@ void ltrng_state_set_seed(struct ltrng_State *state, int64_t seed)
     }
 
     state->seed = s_seed;
-
-    // 1.20-pre3 burns a nextLong() call
-    ltrng_state_next_long(state);
 }
 
 uint64_t ltrng_state_next_long(struct ltrng_State *state)

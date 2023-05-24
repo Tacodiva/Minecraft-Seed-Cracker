@@ -53,11 +53,11 @@ void ltrng_simd_state_set_seeds(struct ltrng_simd_State *state, __m512i seeds)
     // long l_seed = seed ^ 0x6A09E667F3BCC909L;
     __m512i l_seed = _mm512_xor_epi64(seeds, _mm512_set1_epi64(0x6A09E667F3BCC909L));
 
-    // state->seed.low = ltrng_util_mix_stafford_13(l_seed) ^ state->hash.low;
-    state->seedLo = _mm512_xor_epi64(ltrng_simd_util_mix_stafford_13(l_seed), _mm512_set1_epi64(state->hash.low));
+    // state->seed.low = ltrng_util_mix_stafford_13(l_seed ^ state->hash.low);
+    state->seedLo = ltrng_simd_util_mix_stafford_13(_mm512_xor_epi64(l_seed, _mm512_set1_epi64(state->hash.low)));
 
-    // state->seed.high = ltrng_util_mix_stafford_13(l_seed + -7046029254386353131L) ^ state->hash.high;
-    state->seedHi = _mm512_xor_epi64(ltrng_simd_util_mix_stafford_13(_mm512_add_epi64(l_seed, _mm512_set1_epi64(-7046029254386353131L))), _mm512_set1_epi64(state->hash.high));
+    // state->seed.high = ltrng_util_mix_stafford_13((l_seed + -7046029254386353131L) ^ state->hash.high);
+    state->seedHi = ltrng_simd_util_mix_stafford_13(_mm512_xor_epi64(_mm512_add_epi64(l_seed, _mm512_set1_epi64(-7046029254386353131L)), _mm512_set1_epi64(state->hash.high)));
 
     //  if ((s_seed.low | s_seed.high) == 0L)
     __mmask8 zeroSeedLanes = _mm512_cmpeq_epi64_mask(state->seedLo, _mm512_set1_epi64(0));
@@ -69,9 +69,6 @@ void ltrng_simd_state_set_seeds(struct ltrng_simd_State *state, __m512i seeds)
         state->seedLo = _mm512_mask_set1_epi64(state->seedLo, zeroSeedLanes, -7046029254386353131L);
         state->seedHi = _mm512_mask_set1_epi64(state->seedHi, zeroSeedLanes, 7640891576956012809L);
     }
-
-    // 1.20-pre3 burns a nextLong() call
-    ltrng_simd_state_next_long(state);
 }
 
 void ltrng_simd_state_mask_set_seed(struct ltrng_simd_State *state, int64_t seed, __mmask8 mask)

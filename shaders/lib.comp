@@ -32,18 +32,13 @@ ltrng_State ltrng_state_create(uint64_t seed) {
   uint64_t l_seed = seed ^ 0x6A09E667F3BCC909L;
   ltrng_State s_seed;
 
-  s_seed.low = ltrng_util_mix_stafford_13(l_seed);
-  s_seed.high = ltrng_util_mix_stafford_13(l_seed + -7046029254386353131L);
-  s_seed.low ^= hashLo;
-  s_seed.high ^= hashHi;
+  s_seed.low = ltrng_util_mix_stafford_13(l_seed ^ hashLo);
+  s_seed.high = ltrng_util_mix_stafford_13((l_seed + -7046029254386353131L) ^ hashHi);
 
   if ((s_seed.low | s_seed.high) == 0L) {
     s_seed.low = -7046029254386353131L;
     s_seed.high = 7640891576956012809L;
   }
-
-  // 1.20-pre3 burns a nextLong() call
-  ltrng_state_next_long(s_seed);
 
   return s_seed;
 }
